@@ -70,8 +70,9 @@ int	main(int ac, char **av)
 {
 	if (ac != 2)	return 1;
 
-	std::ifstream	file(av[1]);
-	std::string		line;
+	std::ifstream			file(av[1]);
+	std::string				line;
+	std::string::size_type	pos;
 
 	if (!file.is_open())	return 1;
 
@@ -79,24 +80,21 @@ int	main(int ac, char **av)
 	std::vector<uint32_t>	distances;
 	uint64_t				time2(0), dist2(0);
 
-	if (std::getline(file, line)) {
-		std::string::size_type	pos(line.find(":"));
-		if (pos == std::string::npos)
-			return 1;
+	if (std::getline(file, line) \
+	&& (pos = line.find(":")) != std::string::npos) {
 		std::string	tmp = line.substr(pos + 1);
 		get_values(tmp, times);
 		tmp.erase(std::remove(tmp.begin(), tmp.end(), ' '), tmp.end());
 		std::istringstream(tmp) >> time2;
 	}
-	if (std::getline(file, line)) {
-		std::string::size_type	pos(line.find(":"));
-		if (pos == std::string::npos)
-			return 1;
+	if (std::getline(file, line) \
+	&& (pos = line.find(":")) != std::string::npos) {
 		std::string	tmp = line.substr(pos + 1);
 		get_values(tmp, distances);
 		tmp.erase(std::remove(tmp.begin(), tmp.end(), ' '), tmp.end());
 		std::istringstream(tmp) >> dist2;
 	}
+	file.close();
 	if (times.size() != distances.size() || !time2 || !dist2)	return 1;
 
 	std::cout << "Result 1: " << get_result1(times, distances) << std::endl;
