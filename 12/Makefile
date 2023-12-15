@@ -30,14 +30,11 @@ SRCS := $(addprefix $(SRCDIR), $(SRC))
 OBJS := $(SRC:%.cpp=$(OBJDIR)%.o)
 
 # --- Compilers ---
-CC := cc
 CXX := c++
 
 # --- Flags ---
-CFLAGS := -Wall -Wextra -Wpedantic -Werror -O3
-CXXFLAGS := -std=c++11 -Wall -Wextra -Wpedantic -Werror -O3
+CXXFLAGS := -std=c++11 -Wall -Wextra -Wpedantic -Werror -O3 -pthread
 INCLUDES := -I$(HDRDIR)
-debug: CFLAGS += -ggdb3 -Og
 debug: CXXFLAGS += -ggdb3 -Og
 
 # --- Utils --

@@ -21,6 +21,7 @@ class Stopwatch
 	public:
 	Stopwatch();
 	~Stopwatch();
+	void elapsed();
 
 	private:
 	std::chrono::steady_clock::time_point	start_;

@@ -14,7 +14,6 @@
 # define HEAD_HPP
 
 # include <algorithm>
-# include <cstdlib>
 # include <fstream>
 # include <future>
 # include <iostream>
@@ -24,11 +23,16 @@
 # include <thread>
 # include <vector>
 
-// typedef unsigned long int uint64_t;
+typedef std::pair<std::string, std::vector<int> > Row;
+typedef std::vector<std::future<int> > FutureVector;
 
-std::string	analyze(std::string const &line, std::vector<int> &groups);
-int			backtrack(std::string const &row, std::vector<int> const &groups);
-std::string	unfold(std::string const &row, std::vector<int> const &groups,
-				std::vector<int> &unfolded_groups);
+std::string			analyze(std::string const &line, std::vector<int> &groups);
+int					backtrack(std::string const &row,
+					std::vector<int> const &groups,
+					size_t const &acc);
+std::string			unfold(std::string const &row,
+					std::vector<int> const &groups,
+					std::vector<int> &unfolded_groups);
+unsigned long int	accumulate_futures(std::vector<Row> &rows);
 
 #endif // HEAD_HPP

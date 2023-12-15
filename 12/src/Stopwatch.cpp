@@ -25,3 +25,11 @@ Stopwatch::~Stopwatch()
 				(this->stop_ - this->start_).count()
 				<< " ms" << std::endl;
 }
+
+void Stopwatch::elapsed()
+{
+	std::cout	<< "Time elapsed: "
+				<< std::chrono::duration_cast<std::chrono::milliseconds>\
+				(std::chrono::steady_clock::now() - this->start_).count()
+				<< " ms" << std::endl;
+}

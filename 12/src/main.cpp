@@ -6,7 +6,7 @@
 /*   By: mcutura <mcutura@student.42berlin.de>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/12 20:46:58 by mcutura           #+#    #+#             */
-/*   Updated: 2023/12/13 13:20:06 by mcutura          ###   ########.fr       */
+/*   Updated: 2023/12/15 00:52:04 by mcutura          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,58 +14,92 @@
 #include "Stopwatch.hpp"
 #include "Utils.hpp"
 
+namespace {
+	static size_t const	k_batch_size = 10;
+}
+
 int	main(int ac, char **av)
 {
 	if (ac != 2)					return 1;
 	std::ifstream					file(av[1]);
 	if (!file.is_open())			return 1;
 	std::string						line;
+	std::vector<Row>				rows;
 	int								res(0);
-	unsigned long int				res2(0);
-	std::vector<std::future<int> >	futures;
 
 	while (std::getline(file, line) && !line.empty()) {
 		std::vector<int>	groups;
-		std::vector<int>	unfolded_groups;
 		std::string			row(analyze(line, groups));
-		res += backtrack(row, groups);
-		row = unfold(row, groups, unfolded_groups);
-		futures.push_back(std::async(std::launch::async, 
-			backtrack, row, unfolded_groups));
+		rows.push_back(std::make_pair(row, groups));
+		res += backtrack(row, groups,
+				std::accumulate(groups.begin(), groups.end(), 0));
 	}
 	file.close();
 	std::cout	<< "Result 1: "
 				<< res
 				<< std::endl;
-	size_t		total(futures.size());
-	Stopwatch	time;
+	std::cout	<< "Result 2: "
+				<< accumulate_futures(rows)
+				<< std::endl;
+	return 0;
+}
+
+unsigned long int	accumulate_futures(std::vector<Row> &rows)
+{
+	unsigned long int	acc(0);
+	FutureVector		futures;
+	size_t				total(rows.size());
+	size_t				counter(0);
+	Stopwatch			time;
+
+	futures.reserve(k_batch_size + 1);
+	for (std::vector<Row>::const_iterator row = rows.begin();
+	row != rows.end();) {
+		if (++counter > k_batch_size)	break;
+		std::vector<int>	groups;
+		std::string			data(unfold(row->first, row->second, groups));
+		futures.push_back(std::async(
+			std::launch::async,
+			backtrack, data, groups,
+			std::accumulate(groups.begin(), groups.end(), 0)));
+		row = rows.erase(row);
+	}
+	counter = 0;
 	while (!futures.empty()) {
-		Stopwatch	clock;
 		std::cout << "[";
-		for (std::vector<std::future<int> >::iterator task = futures.begin();
+		for (FutureVector::iterator task = futures.begin();
 		task != futures.end();) {
-			std::future_status	stat(task->wait_for(std::chrono::milliseconds(1000)));
+			std::future_status	stat(task->wait_for(
+								std::chrono::milliseconds(1000)));
 			if (stat == std::future_status::timeout) {
 				std::cout << "=" << std::flush;
 				std::advance(task, 1);
 			} else {
-				res2 += task->get();
+				acc += task->get();
+				++counter;
+				if (!rows.empty()) {
+					std::vector<Row>::iterator row(rows.begin());
+					futures.push_back(std::async(
+						std::launch::async,
+						backtrack, row->first, row->second,
+						std::accumulate(
+							row->second.begin(), row->second.end(), 0)));
+					row = rows.erase(row);
+				}
 				task = futures.erase(task);
 			}
 		}
-		std::cout	<< "]\nDone: " << total - futures.size()
+		std::cout	<< "]\nDone: " << counter
 					<< " / " << total << std::endl;
+		time.elapsed();
 	}
-	std::cout	<< "Result 2: "
-				<< res2
-				<< std::endl;
-	return 0;
+	return acc;
 }
 
 std::string	analyze(std::string const &line, std::vector<int> &groups)
 {
 	std::string::size_type				pos(line.find(' '));
-	if (pos == std::string::npos)		return 0;
+	if (pos == std::string::npos)		return "";
 	std::vector<std::string>			nums(ft_splitstr(&line[pos + 1], ","));
 
 	for (std::vector<std::string>::iterator num = nums.begin();
@@ -77,7 +111,7 @@ std::string	analyze(std::string const &line, std::vector<int> &groups)
 	return line.substr(0, pos);
 }
 
-static bool	accept(std::string const &comb, std::vector<int> const &groups)
+static inline bool	accept(std::string const &comb, std::vector<int> const &groups)
 {
 	std::string::size_type	pos(0);
 
@@ -101,11 +135,11 @@ static bool	accept(std::string const &comb, std::vector<int> const &groups)
 	return (pos == std::string::npos);
 }
 
-static inline bool	reject(std::string const &comb, std::vector<int> const &groups)
+static inline bool	reject(std::string const &comb, std::vector<int> const &groups, int n)
 {
-	size_t n = std::accumulate(groups.begin(), groups.end(), 0);
-	if (n > comb.length() - std::count(comb.begin(), comb.end(), '.')
-	|| n < static_cast<size_t>(std::count(comb.begin(), comb.end(), '#'))) {
+	size_t	len(comb.length());
+	if (static_cast<int>(len) - n < std::count(comb.begin(), comb.end(), '.')
+	|| n < std::count(comb.begin(), comb.end(), '#')) {
 		return true;
 	}
 	std::string::size_type	pos(0);
@@ -129,30 +163,21 @@ static inline bool	reject(std::string const &comb, std::vector<int> const &group
 	return false;
 }
 
-int	backtrack(std::string const &row, std::vector<int> const &groups)
+int	backtrack(std::string const &row, std::vector<int> const &groups, \
+	size_t const &acc)
 {
-	int		count(0);
+	if (reject(row, groups, acc)) {
+		return 0;
+	}
+	std::string::size_type	pos(row.find('?'));
+	if (pos == std::string::npos) { return accept(row, groups); }
 
-	if (reject(row, groups)) {
-		// std::cout << "Rejected: " << row << std::endl;
-		return 0;
-	}
-	std::string::size_type			pos(row.find('?'));
-	if (pos == std::string::npos) {
-		if (accept(row, groups)) {
-			// std::cout << "Accepted: " << row << std::endl;
-			return 1;
-		}
-		return 0;
-	}
-	std::string				cand(row);
-	// cand.replace(pos, 1, "#");
+	int			count(0);
+	std::string	cand(row);
 	cand[pos] = '#';
-	count += backtrack(cand, groups);
-	// cand.replace(pos, 1, ".");
+	count += backtrack(cand, groups, acc);
 	cand[pos] = '.';
-	count += backtrack(cand, groups);
-	return count;
+	return count + backtrack(cand, groups, acc);
 }
 
 std::string	unfold(std::string const &row, std::vector<int> const &groups,
