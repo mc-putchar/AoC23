@@ -11,7 +11,7 @@
 # **************************************************************************** #
 
 # --- Targets ---
-NAME := hot_springs
+NAME	:= hot_springs
 
 # --- Directories ---
 HDRDIR := include/
@@ -19,11 +19,11 @@ SRCDIR := src/
 OBJDIR := build/
 
 # --- Headers ---
-HDR := head.hpp Stopwatch.hpp Utils.hpp
+HDR := head.hpp Utils.hpp
 HDRS := $(addprefix $(HDRDIR), $(HDR))
 
 # --- Sources ---
-SRC := main.cpp Stopwatch.cpp Utils.cpp
+SRC := main.cpp Utils.cpp
 SRCS := $(addprefix $(SRCDIR), $(SRC))
 
 # --- Objects ---
@@ -33,7 +33,7 @@ OBJS := $(SRC:%.cpp=$(OBJDIR)%.o)
 CXX := c++
 
 # --- Flags ---
-CXXFLAGS := -std=c++11 -Wall -Wextra -Wpedantic -Werror -O3 -pthread
+CXXFLAGS := -std=c++98 -Wall -Wextra -Wpedantic -Werror -O3 -march=native
 INCLUDES := -I$(HDRDIR)
 debug: CXXFLAGS += -ggdb3 -Og
 
@@ -42,6 +42,8 @@ RM := rm -fr
 MKDIR := mkdir -pm 775
 
 # --- Rules ---
+.PHONY: all clean debug fclean re
+
 all: $(NAME)
 
 $(NAME): $(HDRS) $(OBJS)
@@ -62,5 +64,3 @@ fclean: clean
 	$(RM) $(NAME)
 
 re: fclean all
-
-.PHONY: all clean debug fclean re
