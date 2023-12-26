@@ -31,7 +31,7 @@ help:	# Print help on Makefile
 all: $(CALENDAR)	# Compile all targets
 	$(info Compiled 2023 Advent of code)
 
-run: $(INPUTS) $(SOLUTIONS)	# Run all solutions
+run: $(SOLUTIONS) | $(INPUTS)	# Run all solutions
 	$(info Running solutions)
 	@for sol in $(SOLUTIONS); do \
 		day=$$(dirname $$sol); \
@@ -48,12 +48,15 @@ fclean: $(CALENDAR)	# Clean all generated files
 re: fclean all	# Re-compile all targets
 
 $(SOLUTIONS):
-	$(CALENDAR)
+	@$(MAKE) all --no-print-directory
 
 $(CALENDAR)::
-	@$(MAKE) -C $@ $(MAKECMDGOALS)
+	$(info Make $(MAKECMDGOALS) day $@)
+	@$(MAKE) -s --no-print-directory -C $@ $(MAKECMDGOALS)
 
 $(INPUTS): | NOMNOM
 	$(foreach DAY, $(CALENDAR), $(shell day=$(DAY); \
 	URL="https://adventofcode.com/2023/day/$${day##0}input"; \
-	curl -z $(DAY)input.txt -o $(DAY)input.txt --cookie "session=$(COOKIE)" $$URL))
+	curl -z $(DAY)input.txt -o $(DAY)input.txt \
+	--cookie "session=$(COOKIE)" $$URL))
+	$(info Inputs ready)
