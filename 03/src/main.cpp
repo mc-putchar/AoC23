@@ -144,7 +144,7 @@ int main(int ac, char **av)
 		schem.push_back(line);
 	}
 	file.close();
-	std::cout << "Result: " << sum_part_nums(schem) << std::endl;
+	std::cout << "Result 1: " << sum_part_nums(schem) << std::endl;
 	std::cout << "Result 2: " << sum_gear_ratios(schem) << std::endl;
 	return 0;
 }

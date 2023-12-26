@@ -11,7 +11,7 @@
 # **************************************************************************** #
 
 # --- Targets ---
-NAME	:= hot_springs
+NAME := hot_springs
 
 # --- Directories ---
 HDRDIR := include/
