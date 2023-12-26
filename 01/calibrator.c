@@ -30,6 +30,13 @@ static char const	*nums[] =
 "nine"
 };
 
+static int	ft_is_digit(char const *num)
+{
+	if (*num > '0' && *num <= '9')
+		return (*num - '0');
+	return 0;
+}
+
 static int	ft_is_number(char const *num)
 {
 	int	i;
@@ -43,7 +50,7 @@ static int	ft_is_number(char const *num)
 	return (0);
 }
 
-int	calibrate(char const *data)
+int	calibrate(char const *data, int (*calibrator)(char const *))
 {
 	int		last;
 	int		res;
@@ -53,7 +60,7 @@ int	calibrate(char const *data)
 	last = -1;
 	while (*data)
 	{
-		n = ft_is_number(data);
+		n = calibrator(data);
 		if (n)
 		{
 			if (last < 0)
@@ -81,7 +88,6 @@ int	main(int ac, char **av)
 	size_t	done;
 	size_t	size;
 	char	*data;
-	int		res;
 
 	if (ac != 2)
 		return (1);
@@ -114,6 +120,7 @@ int	main(int ac, char **av)
 	close(fd);
 	if (r < 0)
 		return (free(data), 1);
-	printf("Calibration accumulated: %d\n", calibrate(data));
+	printf("Result 1: %d\n", calibrate(data, ft_is_digit));
+	printf("Result 2: %d\n", calibrate(data, ft_is_number));
 	return (free(data), 0);
 }
