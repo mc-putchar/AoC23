@@ -56,9 +56,8 @@ static Edge	convert_input_line(std::string const &line, bool swap)
 {
 	unsigned int	dir(0), step(0);
 	std::string		color;
-	char			tmp;
+	char			tmp(line[0]);
 
-	std::istringstream(line) >> tmp >> step >> color;
 	switch (tmp) {
 		case 'U':	dir = 3; break;
 		case 'L':	dir = 2; break;
@@ -66,6 +65,7 @@ static Edge	convert_input_line(std::string const &line, bool swap)
 		case 'R':	dir = 0; break;
 		default:	break;
 	}
+	std::istringstream(&line[1]) >> step >> color;
 	unsigned int c = get_color_from_hex(color);
 	if (swap)
 		return Edge(c & 3, (c >> 4), ((step << 4) | dir));
