@@ -15,12 +15,11 @@ M := \x1b[35m
 A := \x1b[36m
 S := \x1b[1;36m
 CALENDAR := $(wildcard */)
-
 INPUTS := $(CALENDAR:%=%input.txt)
 SOLUTIONS := $(shell awk 'BEGIN {FS=":= "} /NAME :=*/ { \
 	printf "%.3s%s\n", FILENAME, $$2; nextfile}' */Makefile)
 
-.PHONY: all re clean fclean help run NOMNOM
+.PHONY: all re clean fclean help run time NOMNOM
 
 help:	# Print help on Makefile
 	@awk 'BEGIN { \
@@ -31,7 +30,7 @@ help:	# Print help on Makefile
 all: $(CALENDAR)	# Compile all targets
 	$(info Compiled 2023 Advent of code)
 
-run: $(SOLUTIONS) | $(INPUTS)	# Run all solutions
+run: | $(SOLUTIONS) $(INPUTS)	# Run all solutions
 	$(info Running solutions)
 	@for sol in $(SOLUTIONS); do \
 		day=$$(dirname $$sol); \
@@ -46,17 +45,18 @@ NOMNOM:	# to download inputs, export your aoc session COOKIE=<...>
 clean: $(CALENDAR)	# Clean compiled build objects
 fclean: $(CALENDAR)	# Clean all generated files
 re: fclean all	# Re-compile all targets
-
-$(SOLUTIONS):
-	@$(MAKE) all --no-print-directory
+time:	# Benchmark time to run all solutions
+	@time $(MAKE) -s --no-print-directory run
 
 $(CALENDAR)::
 	$(info Make $(MAKECMDGOALS) day $@)
 	@$(MAKE) -s --no-print-directory -C $@ $(MAKECMDGOALS)
 
-$(INPUTS): | NOMNOM
-	$(foreach DAY, $(CALENDAR), $(shell day=$(DAY); \
-	URL="https://adventofcode.com/2023/day/$${day##0}input"; \
-	curl -z $(DAY)input.txt -o $(DAY)input.txt \
-	--cookie "session=$(COOKIE)" $$URL))
-	$(info Inputs ready)
+$(SOLUTIONS):
+	@$(MAKE) all --no-print-directory
+
+$(INPUTS): %input.txt:
+	@test -e $@ || $(MAKE) -s --no-print-directory NOMNOM || exit $$?
+	@test -e $@ || (day=$(dir $@) \
+	&& URL="https://adventofcode.com/2023/day/$${day##0}input" \
+	&& curl -o $@ --cookie "session=$(COOKIE)" $$URL);
