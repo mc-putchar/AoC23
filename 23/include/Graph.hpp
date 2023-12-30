@@ -51,13 +51,14 @@ class Graph
 	Graph &operator=(Graph const &rhs);
 
 	std::vector<Node> const &nodes() const;
-	std::vector<std::pair<int, int> > const &edges() const;
+	std::vector<std::vector<std::pair<int, int> > > const &edges() const;
+	int has_node(Node const &node) const;
 	void add_node(Node const &node);
-	void add_edge(int node_idx, int weight);
+	void add_edge(int start_node, int end_node, int weight);
 
 	private:
-	std::vector<Node>					nodes_;
-	std::vector<std::pair<int, int> >	edges_;
+	std::vector<Node>								nodes_;
+	std::vector<std::vector<std::pair<int, int> > >	edges_;
 };
 
 #endif // GRAPH_HPP

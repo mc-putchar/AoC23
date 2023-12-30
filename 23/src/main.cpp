@@ -28,8 +28,8 @@ int	main(int ac, char **av)
 	std::cout	<< "Result 1: "
 				<< longest_path(lines)
 				<< std::endl;
-	std::cout	<< "Result 2: "
-				// << most_scenic_path(lines)
+	std::cout	<< "Result 2: \n"
+				<< most_scenic_path(lines)
 				<< std::endl;
 	return 0;
 }

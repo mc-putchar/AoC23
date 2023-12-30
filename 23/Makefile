@@ -23,7 +23,7 @@ HDR := head.hpp Graph.hpp
 HDRS := $(addprefix $(HDRDIR)/, $(HDR))
 
 # --- Sources ---
-SRC := main.cpp part1.cpp Graph.cpp #part2.cpp
+SRC := main.cpp part1.cpp Graph.cpp part2.cpp
 SRCS := $(addprefix $(SRCDIR)/, $(SRC))
 
 # --- Objects ---

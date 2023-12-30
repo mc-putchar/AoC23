@@ -47,10 +47,10 @@ Graph &Graph::operator=(Graph const &rhs)
 		it != rhs.nodes().end(); ++it) {
 			this->add_node(*it);
 		}
-		for (std::vector<std::pair<int, int> >::const_iterator
+		for (std::vector<std::vector<std::pair<int, int> > >::const_iterator
 		it = rhs.edges().begin();
 		it != rhs.edges().end(); ++it) {
-			this->add_edge(it->first, it->second);
+			this->edges_.push_back(*it);
 		}
 	}
 	return *this;
@@ -98,19 +98,30 @@ std::vector<Node> const &Graph::nodes() const
 	return this->nodes_;
 }
 
-std::vector<std::pair<int, int> > const &Graph::edges() const
+std::vector<std::vector<std::pair<int, int> > > const &Graph::edges() const
 {
 	return this->edges_;
+}
+
+int Graph::has_node(Node const &node) const
+{
+	for (size_t i = 0; i < this->nodes_.size(); ++i) {
+		if (node == this->nodes_[i]) { return i; }
+	}
+	return -1;
 }
 
 void Graph::add_node(Node const &node)
 {
 	this->nodes_.push_back(node);
+	this->edges_.push_back(std::vector<std::pair<int, int> >());
 }
 
-void Graph::add_edge(int node_idx, int weight)
+void Graph::add_edge(int start_node, int end_node, int weight)
 {
-	this->edges_.push_back(std::make_pair(node_idx, weight));
+	if (start_node < static_cast<int>(this->edges_.size())) {
+		this->edges_[start_node].push_back(std::make_pair(end_node, weight));
+	}
 }
 
 
